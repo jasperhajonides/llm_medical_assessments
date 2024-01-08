@@ -21,19 +21,19 @@ The dashboard is designed to be intuitive, guiding the user through each step of
 To run the application, follow these steps:
 
 1. **Clone the Repository**:
-   \`\`\`
+    ```
    git clone [repository-url]
-   \`\`\`
+    ```
 
 2. **Build the Docker Image**:
-   \`\`\`
+    ```
    docker build -t medical_report_assessment -f Dockerfile .
-   \`\`\`
+    ```
 
 3. **Run the Docker Container**:
-   \`\`\`
+    ```
    docker run -v .:/code -p 80:80 medical_report_assessment
-   \`\`\`
+    ```
 
 4. **Access the Dashboard**:
    Open your web browser and navigate to `http://0.0.0.0:80/`. Follow the on-screen instructions to proceed.
@@ -42,7 +42,7 @@ To run the application, follow these steps:
 
 Below is the basic structure of the project:
 
-\`\`\`
+```
 medical_report_assessment/
 │
 ├── app/               # Application code
@@ -56,6 +56,6 @@ medical_report_assessment/
 ├── Dockerfile         # Dockerfile for setting up the application environment
 ├── requirements.txt   # List of package dependencies
 └── README.md          # Documentation (this file)
-\`\`\`
+```
 
 **Note**: Replace `[repository-url]` with the actual URL of your Git repository.
