@@ -1,7 +1,7 @@
 # Importing necessary libraries
 import dash
 import os
-import time
+import sys
 import pandas as pd
 from dash.exceptions import PreventUpdate
 from dash import Dash, html, dcc, Output, Input, State, callback
@@ -13,8 +13,6 @@ import threading
 
 ## llama index functions
 import logging
-import sys
-import torch
 
 from llama_index import VectorStoreIndex, SimpleDirectoryReader, ServiceContext
 from llama_index.llms import LlamaCPP
@@ -43,17 +41,23 @@ app.layout = html.Div(
     [
         # Store component to keep track of the model state
         dcc.Store(id="model-ready", storage_type="memory"),
-        dcc.Store(id="results-table"),
         # first part of the page:
+
         html.Div(
             [
-                html.H1(
-                    "Assessment of Recommended Procedure",
-                    style={"textAlign": "center", "fontSize": 68},
-                ),
+                html.H1("Assessment of Recommended Procedure", style={
+                    "textAlign": "center", 
+                    "fontSize": "68px",
+                    "color": "#005073",  # Darker shade of blue
+                    "fontFamily": "'Segoe UI', sans-serif",  # Modern font
+                }),
                 html.P(
-                    "Drop your pdf and we will assess the recommended procedure.",
-                    style={"textAlign": "center"},
+                    "The first step is to select your pdf and we will assess the recommended procedure. "
+                    "A .pdf file needs to be present before loading your model.",
+                    style={
+                        "textAlign": "center",
+                        "fontFamily": "'Segoe UI', sans-serif",
+                    },
                 ),
                 dcc.Upload(
                     id="upload-file",
@@ -73,20 +77,27 @@ app.layout = html.Div(
                 ),
                 html.Div(id="output-upload"),
             ],
-            style={"width": "80%", "margin": "auto"},
+            style={"width": "80%", "margin": "auto", "padding": "20px"},
         ),  # Container styling for the first part of the page
         # New section for 'Initialise llama index'
         html.Div(
             [
-                html.H2("Initialise llama index", style={"fontSize": 32}),
+                html.H2("Initialise llama index", style={
+                    "textAlign": "center", 
+                    "fontSize": "32px",
+                    "color": "#005073",  # Darker shade of blue
+                    "fontFamily": "'Segoe UI', sans-serif",  # Modern font
+                }),
                 html.P("""Press to initialise llama-index with Mistral 7B quantised instruct mode and GTE-large (thenlper/gte-large) for the embeddings. 
-                       These models will be used to query the relevant parts of data from the documents. 
-                       We will sometimes run the query multiple times because the model is not deterministic and 
+                       These models will be used to query the relevant parts of data from the documents."""),
+                html.P("""We will sometimes run the query multiple times because the model is not deterministic and 
                        re-running it will get rid of some string formatting issues we may otherwise encouter in this approach.
-                       We'll use the multi-iteration approach as a confidence metric. When you're ready you can press 'Load Model',
-                        if you run it for the first time it may need to download the models which takes a little while. (See terminal for progress in this case.)
+                       We'll use the multi-iteration approach as a confidence metric. """),
+                html.P("""When you're ready you can press 'Load Model',
+                        if you run it for the first time it may need to download the models which takes a little while. 
+                       (See terminal for progress in this case.)"""),
                        
-                       Also note that the models run on CPU only due to time constraints for this exercise. """),
+                html.P("""Also note that the models run on CPU only due to time constraints for this exercise. """),
                 html.Button(
                     "Load Model",
                     id="load-model-button",
@@ -106,15 +117,15 @@ app.layout = html.Div(
                     id="status-display",
                     style={
                         "height": "360px",
-                        "background-color": "lightgrey",
-                        "font-family": "Courier New",
-                        "text-align": "left",  # Align text to the left
+                        "background-color": "#d4f1f9",  # Very light blue
+                        "font-family": "'Courier New', monospace",
+                        "text-align": "left",
                         "display": "flex",
                         "justify-content": "center",
                         "align-items": "center",
-                        "padding-top": "20px",  # Add padding at the top
-                        "padding-bottom": "20px",
-                        # 'width': '80%',  # Add padding at the bottom
+                        "padding": "20px",
+                        "border-radius": "10px",  # Rounded corners
+                        "box-shadow": "0 4px 8px 0 rgba(0,0,0,0.2)",  # Box shadow for depth
                     },
                 ),
                 # Table to display results
@@ -129,18 +140,23 @@ app.layout = html.Div(
                 ),
             ],
             style={"width": "80%", "margin": "auto"},
-        ),  # Container styling for the 'Initialise llama index' section
+        ), 
     ],
-    style={"textAlign": "center"},
-)  # Page styling
+    style={
+        "textAlign": "center",
+        "fontFamily": "'Segoe UI', sans-serif",  # Apply this font to the whole page
+    },
+)  
 
 
+##### now define the callbacks #####
 @app.callback(
     Output("output-upload", "children"),
     Input("upload-file", "filename"),
     Input("upload-file", "contents"),
 )
 def update_output(uploaded_filename, uploaded_file_contents):
+    """ define the dropzone callback function"""
     if uploaded_filename is None or uploaded_file_contents is None:
         raise PreventUpdate
 
@@ -174,6 +190,10 @@ def update_output(uploaded_filename, uploaded_file_contents):
     prevent_initial_call=True,
 )
 def load_model(n_clicks):
+    """ 
+    When the load-model button is pressed we remove any previous data from the table and start
+    the new model.
+    """
     global query_engine
     if n_clicks > 0:
         # Check if temp_results.csv exists, and delete it if it does
@@ -233,7 +253,6 @@ def load_model(n_clicks):
     Input("model-ready", "data"),
 )
 def update_interval(model_ready):
-    print('model_ready',model_ready)
     if model_ready:
         thread = threading.Thread(target=run_assessment, args=(query_engine, temp_csv))
         thread.daemon = True

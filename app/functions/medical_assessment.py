@@ -2,8 +2,10 @@ from functions.llm_output_functions import *
 
 
 def run_assessment(query_engine, temp_csv):
-    n_iterations = 3
-    print('now running run_assessment')
+
+    # Number of iterations for confidence check
+    n_iterations = 9
+
     while True:
         # Update status
         with open("status.txt", "w") as status_file:
@@ -17,7 +19,6 @@ def run_assessment(query_engine, temp_csv):
                                       related to treatments in this report?"""
         )
         text = response.response
-        print('completed first query, extracted code')
 
         code_present, code = check_for_cpt_code(text)
         with open(temp_csv, "a") as file:
@@ -111,7 +112,7 @@ def run_assessment(query_engine, temp_csv):
                     f"Already had a colonoscopy?: ,{colonoscopy_perc},{result_already_had_colonoscopy}\n"
                 )  # Example data
         else:
-            result_already_had_colonoscopy = "Not over 45 yet."
+            result_already_had_colonoscopy = "N/A"
         # -------------If 40 or older check the following---------------
         # -------------CHeck if there is any family history of colorectal cancer---------------
 
@@ -174,8 +175,8 @@ def run_assessment(query_engine, temp_csv):
                     f"Is the patient symptomatic?: ,{sympomatic_perc},{result_symptomatic}\n"
                 )  # Example data
         else:
-            result_symptomatic = "Not over 40 yet."
-            relative_present = "Not over 40 yet."
+            result_symptomatic = "N/A"
+            relative_present = "N/A"
         # ------------- Juvenile polyposis ---------------
 
         checks = []
@@ -210,7 +211,6 @@ def run_assessment(query_engine, temp_csv):
                             
                             Assessment complete. 
                             \n
-                            \n
                             Dear Sir/Madam, \n
                             \n
                             The patient does not request a diagnostic colonoscopy (CPT code: 45378).\n
@@ -226,7 +226,6 @@ def run_assessment(query_engine, temp_csv):
                 f""" 
                             Assessment complete. \n
                             \n 
-                            \n
                             Dear Sir/Madam,\n
                             \n
                             The patient has been treated successfully, diagnostic colonoscopy (CPT code: 45378) may not be required. \n
@@ -247,16 +246,13 @@ def run_assessment(query_engine, temp_csv):
                 f""" 
                                 Assessment complete. \n
                                 \n 
-                                \n
                                 Dear Sir/Madam,
                                 \n
-                                Diagnostic colonoscopy (CPT code: 45378) is advised.: \n \n
+                                Diagnostic colonoscopy (CPT code: 45378) is advised: \n \n
                                 Age: {age} \n
                                 Previous colonoscopy: {result_already_had_colonoscopy} \n
                                 First-degree history of colorectal cancer: {result_relatives}, Currently sympomatic: {result_symptomatic} \n
                                 Juvenile polyposis reported in the document: {result_juv} \n 
-                                \n
-                                Please get in touch if you have any questions.\n
                                 \n
                                 Kind regards, \n
                                 Jasper                          
@@ -269,7 +265,6 @@ def run_assessment(query_engine, temp_csv):
                 f""" 
                                 Assessment complete. 
                                 \n
-                                \n 
                                 Dear Sir/Madam,\n
                                 \n
                                 Diagnostic colonoscopy (CPT code: 45378) may not be required.: \n \n
@@ -277,8 +272,6 @@ def run_assessment(query_engine, temp_csv):
                                 Previous colonoscopy: {result_already_had_colonoscopy} \n
                                 First-degree history of colorectal cancer: {result_relatives}, Currently sympomatic: {result_symptomatic} \n
                                 Juvenile polyposis reported in the document: {result_juv} \n 
-                                \n
-                                Please get in touch if you have any questions.\n
                                 \n
                                 Kind regards, \n
                                 Jasper                          
